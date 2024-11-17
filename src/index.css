@@ -1,0 +1,20 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+#root {
+    max-width: unset !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+.maplibregl-ctrl-attrib-inner,
+.maplibregl-ctrl-attrib-button {
+    display: none;
+}
+
+.css-1d9cypr-MuiStack-root{
+    display: none !important;
+}
