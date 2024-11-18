@@ -18,3 +18,9 @@
 .css-1d9cypr-MuiStack-root{
     display: none !important;
 }
+
+body{
+    width: 100%;
+    height: 100vh;
+    overflow: hidden;
+}
