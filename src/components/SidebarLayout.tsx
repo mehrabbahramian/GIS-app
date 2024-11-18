@@ -124,6 +124,7 @@ function SidebarLayout(props: SidebarLayoutProps) {
 
     const toggleDropdown = () => {
         setDropdownOpen((prev) => !prev)
+        setOpen(true)
     };
 
     return (
