@@ -50,11 +50,8 @@ function Maplibre(props: MapLibreProps) {
 
                 const sourceId = `geoJson-${Date.now()}`;
                 if (map.current?.getSource(sourceId)) {
-                    Swal.fire({
-                        title: "GeoJson File Already Exists!",
-                        icon: "warning"
-                    })
-                    return;
+                    map.current.removeLayer(sourceId);
+                    map.current.removeSource(sourceId);
                 }
                 map.current?.addSource(sourceId, {
                     type: "geojson",
@@ -66,9 +63,38 @@ function Maplibre(props: MapLibreProps) {
                     source: sourceId,
                     paint: {
                         "circle-radius": 6,
-                        "circle-color": "FF5722"
+                        "circle-color": "#FF5722",
                     }
                 });
+                const bounds = new maplibregl.LngLatBounds();
+                geoJson.features.forEach((feature: any) => {
+                    const coordinates = feature.geometry.coordinates;
+
+                    if (feature.geometry.type === "Point") {
+                        bounds.extend(coordinates);
+                    } else if (
+                        feature.geometry.type === "Polygon" ||
+                        feature.geometry.type === "MultiPolygon"
+                    ) {
+                        feature.geometry.coordinates.forEach((ring: [number, number][]) => {
+                            ring.forEach((coord) => {
+                                bounds.extend(coord);
+                            });
+                        });
+                    } else if (
+                        feature.geometry.type === "LineString" ||
+                        feature.geometry.type === "MultiLineString"
+                    ) {
+                        coordinates.forEach((coord: [number, number]) => {
+                            bounds.extend(coord);
+                        });
+                    }
+                });
+
+                if (!bounds.isEmpty()) {
+                    map.current?.fitBounds(bounds, { padding: 20, maxZoom: 15 });
+                }
+
                 Swal.fire({
                     title: "GeoJson layer added to the map!",
                     icon: "success"
@@ -79,8 +105,8 @@ function Maplibre(props: MapLibreProps) {
                     icon: "error"
                 })
             };
-            reader.readAsText(file);
         }
+        reader.readAsText(file);
     };
 
     return (
@@ -93,10 +119,9 @@ function Maplibre(props: MapLibreProps) {
                     tabIndex={-1}
                     startIcon={<CloudUpload />}
                 >
-                    Upload files
+                    Upload GeoJson File
                     <input
                         type="file"
-                        accept=".geojson"
                         onChange={handleFileUpload}
                         style={{ display: "none" }}
                     />
