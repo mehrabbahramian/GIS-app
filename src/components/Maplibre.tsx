@@ -49,6 +49,11 @@ function Maplibre(props: MapLibreProps) {
                 }
 
                 const sourceId = `geoJson-${Date.now()}`;
+                const sourceFileName = file.name;
+                const savedFiles = JSON.parse(localStorage.getItem("geojsonfiles") || "[]");
+                savedFiles.push({ id: sourceId, name: sourceFileName, data: geoJson });
+                localStorage.setItem("geojsonfiles", JSON.stringify(savedFiles))
+
                 if (map.current?.getSource(sourceId)) {
                     map.current.removeLayer(sourceId);
                     map.current.removeSource(sourceId);
@@ -99,6 +104,7 @@ function Maplibre(props: MapLibreProps) {
                     title: "GeoJson layer added to the map!",
                     icon: "success"
                 })
+                
             } catch (error) {
                 Swal.fire({
                     title: "Error parsing GeoJson file!",

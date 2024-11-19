@@ -1,4 +1,3 @@
-import * as React from 'react';
 import { styled, useTheme, Theme, CSSObject } from '@mui/material/styles';
 import Box from '@mui/material/Box';
 import MuiDrawer from '@mui/material/Drawer';
@@ -8,13 +7,13 @@ import List from '@mui/material/List';
 import CssBaseline from '@mui/material/CssBaseline';
 import Divider from '@mui/material/Divider';
 import IconButton from '@mui/material/IconButton';
-import { Menu, ChevronLeft, ChevronRight, Map, ExpandLess, ExpandMore } from "@mui/icons-material"
+import { Menu, ChevronLeft, ChevronRight, Map, ExpandLess, ExpandMore, Layers } from "@mui/icons-material"
 import ListItem from '@mui/material/ListItem';
 import ListItemButton from '@mui/material/ListItemButton';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
-import { useState } from 'react';
-import { Collapse } from '@mui/material';
+import { useEffect, useState } from 'react';
+import { Checkbox, Collapse } from '@mui/material';
 
 const drawerWidth = 240;
 
@@ -102,15 +101,29 @@ const Drawer = styled(MuiDrawer, { shouldForwardProp: (prop) => prop !== 'open' 
 interface SidebarLayoutProps {
     children: React.ReactNode;
     onStyleChange: (style: string) => void;
+    onToggleLayerVisibility: (layerId: string) => void;
 }
 
 function SidebarLayout(props: SidebarLayoutProps) {
     const theme = useTheme();
     const [open, setOpen] = useState(false);
-    const [dropdownOpen, setDropdownOpen] = useState<boolean>(false);
+    const [stylesDropdownOpen, setStylesDropdownOpen] = useState<boolean>(false);
+    const [layersDropdownOpen, setLayersDropdownOpen] = useState<boolean>(false);
+    const [geoJsonFiles, setGeoJsonFiles] = useState<{ id: string; name: string }[]>([]);
+
+    console.log(geoJsonFiles)
+
+    useEffect(() => {
+        const savedFiles = JSON.parse(localStorage.getItem("geojsonfiles") || "[]");
+        setGeoJsonFiles(savedFiles.map((file: any) => ({ id: file.id, name: file.name })));
+    }, []);
 
     const handleStyleChange = (style: string) => {
         props.onStyleChange(style);
+    };
+
+    const toggleLayerVisibility = (layerId: string) => {
+        props.onToggleLayerVisibility(layerId);
     };
 
     const handleDrawerOpen = () => {
@@ -119,13 +132,19 @@ function SidebarLayout(props: SidebarLayoutProps) {
 
     const handleDrawerClose = () => {
         setOpen(false);
-        setDropdownOpen(false);
+        setStylesDropdownOpen(false);
+        setLayersDropdownOpen(false);
     };
 
-    const toggleDropdown = () => {
-        setDropdownOpen((prev) => !prev)
-        setOpen(true)
+    const toggleStylesDropdown = () => {
+        setStylesDropdownOpen((prev) => !prev);
+        setOpen(true);
     };
+
+    const toggleLayersDropdown = () => {
+        setLayersDropdownOpen((prev) => !prev);
+        setOpen(true);
+    }
 
     return (
         <Box sx={{ display: 'flex' }}>
@@ -163,11 +182,9 @@ function SidebarLayout(props: SidebarLayoutProps) {
                                     minHeight: 48,
                                     px: 2.5,
                                 },
-                                open
-                                    ? { justifyContent: 'initial' }
-                                    : { justifyContent: 'center', },
+                                open ? { justifyContent: 'initial' } : { justifyContent: 'center', },
                             ]}
-                            onClick={toggleDropdown}
+                            onClick={toggleStylesDropdown}
                         >
                             <ListItemIcon
                                 sx={[
@@ -183,18 +200,12 @@ function SidebarLayout(props: SidebarLayoutProps) {
                             <ListItemText
                                 primary={"Styles"}
                                 sx={[
-                                    open
-                                        ? {
-                                            opacity: 1,
-                                        }
-                                        : {
-                                            opacity: 0,
-                                        },
+                                    open ? { opacity: 1, } : { opacity: 0, },
                                 ]}
                             />
-                            {open ? (dropdownOpen ? <ExpandLess /> : <ExpandMore />) : ""}
+                            {open ? (stylesDropdownOpen ? <ExpandLess /> : <ExpandMore />) : ""}
                         </ListItemButton>
-                        <Collapse in={dropdownOpen} timeout="auto" unmountOnExit>
+                        <Collapse in={stylesDropdownOpen} timeout="auto" unmountOnExit>
                             <List component="div" disablePadding>
                                 <ListItemButton
                                     sx={{ pl: open ? 4 : 2.5 }}
@@ -220,6 +231,50 @@ function SidebarLayout(props: SidebarLayoutProps) {
                                 >
                                     <ListItemText primary="Satellite" />
                                 </ListItemButton>
+                            </List>
+                        </Collapse>
+                    </ListItem>
+
+                    <ListItem key={"Layers"} disablePadding sx={{ display: "block" }}>
+                        <ListItemButton
+                            sx={[
+                                { minHeight: 48, px: 2.5 },
+                                open ? { justifyContent: "initial" } : { justifyContent: "center" },
+                            ]}
+                            onClick={toggleLayersDropdown}
+                        >
+                            <ListItemIcon
+                                sx={[
+                                    { minWidth: 0, justifyContent: "center" },
+                                    open ? { mr: 3 } : { mr: "auto" },
+                                ]}
+                            >
+                                <Layers />
+                            </ListItemIcon>
+                            <ListItemText
+                                primary={"Layers"}
+                                sx={[open ? { opacity: 1 } : { opacity: 0 }]}
+                            />
+                            {open ? (layersDropdownOpen ? <ExpandLess /> : <ExpandMore />) : ""}
+                        </ListItemButton>
+                        <Collapse in={layersDropdownOpen} timeout="auto" unmountOnExit>
+                            <List component="div" disablePadding>
+                                {geoJsonFiles.length > 0 ? (
+                                    geoJsonFiles.map((file) => (
+                                        <ListItem key={file.id} disablePadding>
+                                            <ListItemButton sx={{ pl: open ? 4 : 2.5 }}>
+                                                <Checkbox
+                                                    onChange={() => toggleLayerVisibility(file.id)}
+                                                />
+                                                <ListItemText primary={file.name} />
+                                            </ListItemButton>
+                                        </ListItem>
+                                    ))
+                                ) : (
+                                    <ListItem>
+                                        <ListItemText primary="No GeoJSON layers" />
+                                    </ListItem>
+                                )}
                             </List>
                         </Collapse>
                     </ListItem>
