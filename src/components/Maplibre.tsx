@@ -39,12 +39,6 @@ const controlModes = [
         name: "Line",
         mode: "linestring",
         icon: <ShowChart />
-    },
-    {
-        id: 6,
-        name: "",
-        mode: "",
-        icon: <Delete />
     }
 ]
 
@@ -205,6 +199,16 @@ function Maplibre(props: MapLibreProps) {
                         )
                     })
                 }
+                <Button
+                    variant="contained"
+                    onClick={() => {
+                    if (drawRef.current) {
+                        drawRef.current.clear()
+                    }
+                    }}
+                    startIcon={<Delete/>}
+                    color="info">
+                </Button>
             </div>
             <div style={{ padding: '10px', background: '#f5f5f5', borderBottom: '1px solid #ddd' }}>
                 <Button
