@@ -2,27 +2,85 @@ import React, { useEffect, useRef } from "react";
 import maplibregl from 'maplibre-gl';
 import Swal from "sweetalert2";
 import { Button } from "@mui/material";
-import { CloudUpload } from "@mui/icons-material";
+import { CloudUpload, Delete, Hexagon, PanoramaFishEye, PanTool, Rectangle, ShowChart } from "@mui/icons-material";
+import { TerraDraw, TerraDrawCircleMode, TerraDrawFreehandMode, TerraDrawLineStringMode, TerraDrawMapLibreGLAdapter, TerraDrawPolygonMode, TerraDrawRectangleMode } from "terra-draw";
 
 interface MapLibreProps {
     style: string;
 }
 
+const controlModes = [
+    {
+        id: 1,
+        name: "Freehand",
+        mode: "freehand",
+        icon: <PanTool />
+    },
+    {
+        id: 2,
+        name: "Polygon",
+        mode: "polygon",
+        icon: <Hexagon />
+    },
+    {
+        id: 3,
+        name: "Rectangle",
+        mode: "rectangle",
+        icon: <Rectangle />
+    },
+    {
+        id: 4,
+        name: "Circle",
+        mode: "circle",
+        icon: <PanoramaFishEye />
+    },
+    {
+        id: 5,
+        name: "Line",
+        mode: "linestring",
+        icon: <ShowChart />
+    },
+    {
+        id: 6,
+        name: "",
+        mode: "",
+        icon: <Delete />
+    }
+]
+
 function Maplibre(props: MapLibreProps) {
     const mapContainer = useRef<HTMLDivElement | null>(null);
-    const map = useRef<maplibregl.Map | null>(null);
+    const mapRef = useRef<maplibregl.Map | null>(null);
+    const drawRef = useRef<TerraDraw | null>(null);
 
     useEffect(() => {
         if (!mapContainer.current) return;
 
-        map.current = new maplibregl.Map({
+        const map = new maplibregl.Map({
             container: mapContainer.current,
             style: props.style,
             center: [53.6880, 32.4279],
             zoom: 5,
         });
 
-        return () => map.current?.remove()
+        mapRef.current = map;
+
+        const draw = new TerraDraw({
+            adapter: new TerraDrawMapLibreGLAdapter({ map }),
+            modes: [
+                new TerraDrawFreehandMode(),
+                new TerraDrawPolygonMode(),
+                new TerraDrawRectangleMode(),
+                new TerraDrawCircleMode(),
+                new TerraDrawLineStringMode()
+            ],
+        })
+
+        draw.start();
+        drawRef.current = draw;
+        draw.setMode("freehand");
+
+        return () => mapRef.current?.remove()
     }, [props.style])
 
     const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -54,15 +112,15 @@ function Maplibre(props: MapLibreProps) {
                 savedFiles.push({ id: sourceId, name: sourceFileName, data: geoJson });
                 localStorage.setItem("geojsonfiles", JSON.stringify(savedFiles))
 
-                if (map.current?.getSource(sourceId)) {
-                    map.current.removeLayer(sourceId);
-                    map.current.removeSource(sourceId);
+                if (mapRef.current?.getSource(sourceId)) {
+                    mapRef.current.removeLayer(sourceId);
+                    mapRef.current.removeSource(sourceId);
                 }
-                map.current?.addSource(sourceId, {
+                mapRef.current?.addSource(sourceId, {
                     type: "geojson",
                     data: geoJson
                 });
-                map.current?.addLayer({
+                mapRef.current?.addLayer({
                     id: sourceId,
                     type: "circle",
                     source: sourceId,
@@ -97,14 +155,14 @@ function Maplibre(props: MapLibreProps) {
                 });
 
                 if (!bounds.isEmpty()) {
-                    map.current?.fitBounds(bounds, { padding: 20, maxZoom: 15 });
+                    mapRef.current?.fitBounds(bounds, { padding: 20, maxZoom: 15 });
                 }
 
                 Swal.fire({
                     title: "GeoJson layer added to the map!",
                     icon: "success"
                 })
-                
+
             } catch (error) {
                 Swal.fire({
                     title: "Error parsing GeoJson file!",
@@ -115,8 +173,39 @@ function Maplibre(props: MapLibreProps) {
         reader.readAsText(file);
     };
 
+    const handleDrawModeChange = (mode: string) => {
+        if (drawRef.current) {
+            drawRef.current.setMode(mode);
+        }
+    }
+
     return (
-        <div style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', position: 'relative' }}>
+            <div
+                style={{
+                    position: "absolute",
+                    width: "100%",
+                    top: 70,
+                    left: 0,
+                    zIndex: 1000,
+                    backgroundColor: "transparent",
+                    borderRadius: "8px",
+                    padding: "10px",
+                    display: "flex",
+                    justifyContent: "center",
+                    gap: "12px"
+                }}
+            >
+                {
+                    controlModes.map((mode) => {
+                        return (
+                            <Button variant="contained" onClick={() => handleDrawModeChange(mode.mode)} key={mode.id} startIcon={mode.icon} color="info">
+                                {mode.name}
+                            </Button>
+                        )
+                    })
+                }
+            </div>
             <div style={{ padding: '10px', background: '#f5f5f5', borderBottom: '1px solid #ddd' }}>
                 <Button
                     component="label"
