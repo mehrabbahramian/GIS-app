@@ -3,7 +3,16 @@ import maplibregl from 'maplibre-gl';
 import Swal from "sweetalert2";
 import { Button } from "@mui/material";
 import { CloudUpload, Delete, Hexagon, PanoramaFishEye, PanTool, Rectangle, ShowChart } from "@mui/icons-material";
-import { TerraDraw, TerraDrawCircleMode, TerraDrawFreehandMode, TerraDrawLineStringMode, TerraDrawMapLibreGLAdapter, TerraDrawPolygonMode, TerraDrawRectangleMode } from "terra-draw";
+import {
+    TerraDraw,
+    TerraDrawCircleMode,
+    TerraDrawFreehandMode,
+    TerraDrawLineStringMode,
+    TerraDrawMapLibreGLAdapter,
+    TerraDrawPolygonMode,
+    TerraDrawRectangleMode
+} from "terra-draw";
+import Styles from "./Maplibre.module.css";
 
 interface MapLibreProps {
     style: string;
@@ -175,25 +184,11 @@ function Maplibre(props: MapLibreProps) {
 
     return (
         <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', position: 'relative' }}>
-            <div
-                style={{
-                    position: "absolute",
-                    width: "100%",
-                    top: 70,
-                    left: 0,
-                    zIndex: 1000,
-                    backgroundColor: "transparent",
-                    borderRadius: "8px",
-                    padding: "10px",
-                    display: "flex",
-                    justifyContent: "center",
-                    gap: "12px"
-                }}
-            >
+            <div className={Styles.optionsBar}>
                 {
                     controlModes.map((mode) => {
                         return (
-                            <Button variant="contained" onClick={() => handleDrawModeChange(mode.mode)} key={mode.id} startIcon={mode.icon} color="info">
+                            <Button className={Styles.optionButtons} variant="contained" onClick={() => handleDrawModeChange(mode.mode)} key={mode.id} startIcon={mode.icon} color="info">
                                 {mode.name}
                             </Button>
                         )

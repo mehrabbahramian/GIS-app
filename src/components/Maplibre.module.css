@@ -1,0 +1,18 @@
+.optionsBar {
+    position: absolute;
+    width: 100%;
+    top: 70px;
+    left: 0;
+    z-index: 1000;
+    background-color: transparent;
+    padding: 10px;
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    opacity: .5;
+    transition: all .3s ease;
+}
+
+.optionsBar:hover  {
+    opacity: 1;
+}
