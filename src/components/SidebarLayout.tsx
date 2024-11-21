@@ -111,8 +111,6 @@ function SidebarLayout(props: SidebarLayoutProps) {
     const [layersDropdownOpen, setLayersDropdownOpen] = useState<boolean>(false);
     const [geoJsonFiles, setGeoJsonFiles] = useState<{ id: string; name: string }[]>([]);
 
-    console.log(geoJsonFiles)
-
     useEffect(() => {
         const savedFiles = JSON.parse(localStorage.getItem("geojsonfiles") || "[]");
         setGeoJsonFiles(savedFiles.map((file: any) => ({ id: file.id, name: file.name })));
