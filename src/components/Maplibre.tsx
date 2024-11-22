@@ -1,8 +1,8 @@
 import React, { useEffect, useRef } from "react";
 import maplibregl from 'maplibre-gl';
 import Swal from "sweetalert2";
-import { Button } from "@mui/material";
-import { CloudUpload, Delete, Hexagon, PanoramaFishEye, PanTool, Rectangle, ShowChart } from "@mui/icons-material";
+import { Button, Stack } from "@mui/material";
+import { CloudUpload, Delete, Download, Hexagon, PanoramaFishEye, PanTool, Rectangle, ShowChart } from "@mui/icons-material";
 import {
     TerraDraw,
     TerraDrawCircleMode,
@@ -77,6 +77,15 @@ function Maplibre(props: MapLibreProps) {
                 new TerraDrawCircleMode(),
                 new TerraDrawLineStringMode()
             ],
+            idStrategy: {
+                isValidId: (id) => typeof id === "number" && Number.isInteger(id),
+                getId: (function () {
+                    let id = 0;
+                    return function () {
+                        return ++id;
+                    };
+                })()
+            },
         })
 
         draw.start();
@@ -182,6 +191,37 @@ function Maplibre(props: MapLibreProps) {
         }
     }
 
+    const handleExportDrawing = () => {
+        if (!drawRef.current) {
+            Swal.fire({
+                title: "No Drawing!",
+                icon: "error"
+            })
+            return;
+        }
+
+        if (drawRef.current) {
+            const features = drawRef.current.getSnapshot();
+            const filteredFeatures = features.filter((feature) => !feature.properties.midpoint && !feature.properties.selectionPoint)
+            const dataStr = JSON.stringify(filteredFeatures, null, 2);
+
+            const blob = new Blob([dataStr], { type: "application/json" });
+            const url = URL.createObjectURL(blob);
+
+            const link = document.createElement("a");
+            link.href = url;
+            link.download = 'drawn-shape.geojson';
+            link.click();
+
+            URL.revokeObjectURL(url);
+
+            Swal.fire({
+                title: "Drawing exported!",
+                icon: "success"
+            })
+        }
+    }
+
     return (
         <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', position: 'relative' }}>
             <div className={Styles.optionsBar}>
@@ -197,29 +237,43 @@ function Maplibre(props: MapLibreProps) {
                 <Button
                     variant="contained"
                     onClick={() => {
-                    if (drawRef.current) {
-                        drawRef.current.clear()
-                    }
+                        if (drawRef.current) {
+                            drawRef.current.clear()
+                        }
                     }}
-                    startIcon={<Delete/>}
+                    startIcon={<Delete />}
                     color="info">
                 </Button>
             </div>
             <div style={{ padding: '10px', background: '#f5f5f5', borderBottom: '1px solid #ddd' }}>
-                <Button
-                    component="label"
-                    role={undefined}
-                    variant="contained"
-                    tabIndex={-1}
-                    startIcon={<CloudUpload />}
+                <Stack
+                    direction={"row"}
+                    spacing={2}
+                    justifyContent={'center'}
                 >
-                    Upload GeoJson File
-                    <input
-                        type="file"
-                        onChange={handleFileUpload}
-                        style={{ display: "none" }}
-                    />
-                </Button>
+                    <Button
+                        component="label"
+                        role={undefined}
+                        variant="contained"
+                        tabIndex={-1}
+                        startIcon={<CloudUpload />}
+                    >
+                        Upload GeoJson File
+                        <input
+                            type="file"
+                            onChange={handleFileUpload}
+                            style={{ display: "none" }}
+                        />
+                    </Button>
+                    <Button
+                        variant="contained"
+                        color="secondary"
+                        startIcon={<Download />}
+                        onClick={handleExportDrawing}
+                    >
+                        Export Drawings
+                    </Button>
+                </Stack>
             </div>
             <div
                 ref={mapContainer}
