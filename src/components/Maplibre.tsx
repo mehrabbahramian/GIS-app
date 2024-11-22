@@ -54,7 +54,7 @@ const controlModes = [
 function Maplibre(props: MapLibreProps) {
     const mapContainer = useRef<HTMLDivElement | null>(null);
     const mapRef = useRef<maplibregl.Map | null>(null);
-    const drawRef = useRef<TerraDraw | null>(null);
+    const drawRef = useRef<TerraDraw | null>();
 
     useEffect(() => {
         if (!mapContainer.current) return;
@@ -91,7 +91,6 @@ function Maplibre(props: MapLibreProps) {
         draw.start();
         drawRef.current = draw;
         draw.setMode("freehand");
-
         return () => mapRef.current?.remove()
     }, [props.style])
 
@@ -271,7 +270,7 @@ function Maplibre(props: MapLibreProps) {
                         startIcon={<Download />}
                         onClick={handleExportDrawing}
                     >
-                        Export Drawings
+                        Export GeoJson File
                     </Button>
                 </Stack>
             </div>
