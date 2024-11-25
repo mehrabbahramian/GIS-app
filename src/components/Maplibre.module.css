@@ -16,3 +16,12 @@
 .optionsBar:hover  {
     opacity: 1;
 }
+
+.coordinatesContainer{
+    position: absolute;
+    bottom: 8%;
+    left: 0;
+    background-color: #fff;
+    color: #000;
+    padding: 8px 16px;
+}

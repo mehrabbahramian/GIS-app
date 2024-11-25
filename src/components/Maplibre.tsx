@@ -1,9 +1,10 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import maplibregl from 'maplibre-gl';
 import Swal from "sweetalert2";
 import { Button, Stack } from "@mui/material";
 import { CloudUpload, Delete, Download, Hexagon, PanoramaFishEye, PanTool, Rectangle, ShowChart } from "@mui/icons-material";
 import {
+    HexColor,
     TerraDraw,
     TerraDrawCircleMode,
     TerraDrawFreehandMode,
@@ -14,8 +15,55 @@ import {
 } from "terra-draw";
 import Styles from "./Maplibre.module.css";
 
+type colorsType = {
+    point: {
+        pointColor: HexColor,
+        pointWidth: number,
+        outlineColor: HexColor,
+        outlineWidth: number
+    },
+    line: {
+        lineColor: HexColor,
+        lineWidth: number
+    },
+    polygon: {
+        fillColor: HexColor,
+        fillOpacity: number,
+        outlineColor: HexColor,
+        outlineWidth: number,
+        closingPointColor: HexColor,
+        closingPointWidth: number,
+        closingPointOutlineColor: HexColor,
+        closingPointOutlineWidth: number,
+    },
+    freehand: {
+        fillColor: HexColor,
+        fillOpacity: number,
+        outlineColor: HexColor,
+        outlineWidth: number,
+        closingPointColor: HexColor,
+        closingPointWidth: number,
+        closingPointOutlineColor: HexColor,
+        closingPointOutlineWidth: number,
+    },
+    circle: {
+        fillColor: HexColor,
+        fillOpacity: number,
+        outlineColor: HexColor,
+        outlineWidth: number
+    },
+    rectangle: {
+        fillColor: HexColor,
+        fillOpacity: number,
+        outlineColor: HexColor,
+        outlineWidth: number
+    },
+
+}
+
 interface MapLibreProps {
     style: string;
+    color?: colorsType;
 }
 
 const controlModes = [
@@ -55,7 +103,9 @@ function Maplibre(props: MapLibreProps) {
     const mapContainer = useRef<HTMLDivElement | null>(null);
     const mapRef = useRef<maplibregl.Map | null>(null);
     const drawRef = useRef<TerraDraw | null>();
+    const [mouseCoordinates, setMouseCoordinates] = useState<string>("")
 
+    const drawColor = props.color;
     useEffect(() => {
         if (!mapContainer.current) return;
 
@@ -68,14 +118,60 @@ function Maplibre(props: MapLibreProps) {
 
         mapRef.current = map;
 
+        map.on("mousemove", (e) => {
+            const { lng, lat } = e.lngLat;
+            setMouseCoordinates(`lng: ${lng.toFixed(6)} | lat: ${lat.toFixed(6)}`)
+        })
+
         const draw = new TerraDraw({
             adapter: new TerraDrawMapLibreGLAdapter({ map }),
             modes: [
-                new TerraDrawFreehandMode(),
-                new TerraDrawPolygonMode(),
-                new TerraDrawRectangleMode(),
-                new TerraDrawCircleMode(),
-                new TerraDrawLineStringMode()
+                new TerraDrawFreehandMode({
+                    styles: {
+                        fillColor: drawColor?.freehand.fillColor,
+                        fillOpacity: drawColor?.freehand.fillOpacity,
+                        outlineColor: drawColor?.freehand.outlineColor,
+                        outlineWidth: drawColor?.freehand.outlineWidth,
+                        closingPointColor: drawColor?.freehand.closingPointColor,
+                        closingPointWidth: drawColor?.freehand.closingPointWidth,
+                        closingPointOutlineColor: drawColor?.freehand.closingPointOutlineColor,
+                        closingPointOutlineWidth: drawColor?.freehand.closingPointOutlineWidth
+                    }
+                }),
+                new TerraDrawPolygonMode({
+                    styles: {
+                        fillColor: drawColor?.polygon.fillColor,
+                        fillOpacity: drawColor?.polygon.fillOpacity,
+                        outlineColor: drawColor?.polygon.outlineColor,
+                        outlineWidth: drawColor?.polygon.outlineWidth,
+                        closingPointColor: drawColor?.polygon.closingPointColor,
+                        closingPointWidth: drawColor?.polygon.closingPointWidth,
+                        closingPointOutlineColor: drawColor?.polygon.closingPointOutlineColor,
+                        closingPointOutlineWidth: drawColor?.polygon.closingPointOutlineWidth
+                    }
+                }),
+                new TerraDrawRectangleMode({
+                    styles: {
+                        fillColor: drawColor?.rectangle.fillColor,
+                        fillOpacity: drawColor?.rectangle.fillOpacity,
+                        outlineColor: drawColor?.rectangle.outlineColor,
+                        outlineWidth: drawColor?.rectangle.outlineWidth
+                    }
+                }),
+                new TerraDrawCircleMode({
+                    styles: {
+                        fillColor: drawColor?.circle.fillColor,
+                        fillOpacity: drawColor?.circle.fillOpacity,
+                        outlineColor: drawColor?.circle.outlineColor,
+                        outlineWidth: drawColor?.circle.outlineWidth
+                    }
+                }),
+                new TerraDrawLineStringMode({
+                    styles: {
+                        lineStringColor: drawColor?.line.lineColor,
+                        lineStringWidth: drawColor?.line.lineWidth
+                    }
+                })
             ],
             idStrategy: {
                 isValidId: (id) => typeof id === "number" && Number.isInteger(id),
@@ -282,6 +378,9 @@ function Maplibre(props: MapLibreProps) {
                     width: '100vw',
                 }}
             />
+            <div className={Styles.coordinatesContainer}>
+                {mouseCoordinates}
+            </div>
         </div>
     );
 }
