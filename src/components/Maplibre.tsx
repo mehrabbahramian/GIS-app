@@ -16,54 +16,16 @@ import {
 import Styles from "./Maplibre.module.css";
 
 type colorsType = {
-    point: {
-        pointColor: HexColor,
-        pointWidth: number,
-        outlineColor: HexColor,
-        outlineWidth: number
-    },
-    line: {
-        lineColor: HexColor,
-        lineWidth: number
-    },
-    polygon: {
-        fillColor: HexColor,
-        fillOpacity: number,
-        outlineColor: HexColor,
-        outlineWidth: number,
-        closingPointColor: HexColor,
-        closingPointWidth: number,
-        closingPointOutlineColor: HexColor,
-        closingPointOutlineWidth: number,
-    },
-    freehand: {
-        fillColor: HexColor,
-        fillOpacity: number,
-        outlineColor: HexColor,
-        outlineWidth: number,
-        closingPointColor: HexColor,
-        closingPointWidth: number,
-        closingPointOutlineColor: HexColor,
-        closingPointOutlineWidth: number,
-    },
-    circle: {
-        fillColor: HexColor,
-        fillOpacity: number,
-        outlineColor: HexColor,
-        outlineWidth: number
-    },
-    rectangle: {
-        fillColor: HexColor,
-        fillOpacity: number,
-        outlineColor: HexColor,
-        outlineWidth: number
-    },
-
+    fillColor: HexColor,
+    fillOpacity: number,
+    outlineColor: HexColor,
+    outlineWidth: number
 }
 
 interface MapLibreProps {
     style: string;
     color?: colorsType;
+    onDrawStyleChange: (e:any) => void;
 }
 
 const controlModes = [
@@ -105,7 +67,6 @@ function Maplibre(props: MapLibreProps) {
     const drawRef = useRef<TerraDraw | null>();
     const [mouseCoordinates, setMouseCoordinates] = useState<string>("")
 
-    const drawColor = props.color;
     useEffect(() => {
         if (!mapContainer.current) return;
 
@@ -128,48 +89,40 @@ function Maplibre(props: MapLibreProps) {
             modes: [
                 new TerraDrawFreehandMode({
                     styles: {
-                        fillColor: drawColor?.freehand.fillColor,
-                        fillOpacity: drawColor?.freehand.fillOpacity,
-                        outlineColor: drawColor?.freehand.outlineColor,
-                        outlineWidth: drawColor?.freehand.outlineWidth,
-                        closingPointColor: drawColor?.freehand.closingPointColor,
-                        closingPointWidth: drawColor?.freehand.closingPointWidth,
-                        closingPointOutlineColor: drawColor?.freehand.closingPointOutlineColor,
-                        closingPointOutlineWidth: drawColor?.freehand.closingPointOutlineWidth
+                        fillColor: "#ff0000",
+                        fillOpacity: 0.5,
+                        outlineColor: "#000000",
+                        outlineWidth: 2,
                     }
                 }),
                 new TerraDrawPolygonMode({
                     styles: {
-                        fillColor: drawColor?.polygon.fillColor,
-                        fillOpacity: drawColor?.polygon.fillOpacity,
-                        outlineColor: drawColor?.polygon.outlineColor,
-                        outlineWidth: drawColor?.polygon.outlineWidth,
-                        closingPointColor: drawColor?.polygon.closingPointColor,
-                        closingPointWidth: drawColor?.polygon.closingPointWidth,
-                        closingPointOutlineColor: drawColor?.polygon.closingPointOutlineColor,
-                        closingPointOutlineWidth: drawColor?.polygon.closingPointOutlineWidth
+                        fillColor: "#ff0000",
+                        fillOpacity: 0.5,
+                        outlineColor: "#000000",
+                        outlineWidth: 2,
                     }
                 }),
                 new TerraDrawRectangleMode({
                     styles: {
-                        fillColor: drawColor?.rectangle.fillColor,
-                        fillOpacity: drawColor?.rectangle.fillOpacity,
-                        outlineColor: drawColor?.rectangle.outlineColor,
-                        outlineWidth: drawColor?.rectangle.outlineWidth
+                        fillColor: "#ff0000",
+                        fillOpacity: 0.5,
+                        outlineColor: "#000000",
+                        outlineWidth: 2,
                     }
                 }),
                 new TerraDrawCircleMode({
                     styles: {
-                        fillColor: drawColor?.circle.fillColor,
-                        fillOpacity: drawColor?.circle.fillOpacity,
-                        outlineColor: drawColor?.circle.outlineColor,
-                        outlineWidth: drawColor?.circle.outlineWidth
+                        fillColor: "#ff0000",
+                        fillOpacity: 0.5,
+                        outlineColor: "#000000",
+                        outlineWidth: 2,
                     }
                 }),
                 new TerraDrawLineStringMode({
                     styles: {
-                        lineStringColor: drawColor?.line.lineColor,
-                        lineStringWidth: drawColor?.line.lineWidth
+                        lineStringColor: "#ff0000",
+                        lineStringWidth: 2
                     }
                 })
             ],
@@ -189,6 +142,14 @@ function Maplibre(props: MapLibreProps) {
         draw.setMode("freehand");
         return () => mapRef.current?.remove()
     }, [props.style])
+
+    useEffect(() => {
+        if (drawRef.current && props.onDrawStyleChange) {
+            props.onDrawStyleChange((newStyles : any) => {
+                console.log(newStyles)
+            })
+        }
+    }, [props.onDrawStyleChange])
 
     const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];

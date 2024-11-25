@@ -7,13 +7,13 @@ import List from '@mui/material/List';
 import CssBaseline from '@mui/material/CssBaseline';
 import Divider from '@mui/material/Divider';
 import IconButton from '@mui/material/IconButton';
-import { Menu, ChevronLeft, ChevronRight, Map, ExpandLess, ExpandMore, Layers } from "@mui/icons-material"
+import { Menu, ChevronLeft, ChevronRight, Map, ExpandLess, ExpandMore, Layers, Brush } from "@mui/icons-material"
 import ListItem from '@mui/material/ListItem';
 import ListItemButton from '@mui/material/ListItemButton';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
 import { useEffect, useState } from 'react';
-import { Checkbox, Collapse } from '@mui/material';
+import { Button, Checkbox, Collapse, TextField } from '@mui/material';
 
 const drawerWidth = 240;
 
@@ -102,6 +102,7 @@ interface SidebarLayoutProps {
     children: React.ReactNode;
     onStyleChange: (style: string) => void;
     onToggleLayerVisibility: (layerId: string) => void;
+    onDrawStyleChange: (e: any) => void
 }
 
 function SidebarLayout(props: SidebarLayoutProps) {
@@ -109,7 +110,14 @@ function SidebarLayout(props: SidebarLayoutProps) {
     const [open, setOpen] = useState(false);
     const [stylesDropdownOpen, setStylesDropdownOpen] = useState<boolean>(false);
     const [layersDropdownOpen, setLayersDropdownOpen] = useState<boolean>(false);
+    const [drawStylesDropdownOpen, setDrawStylesDropdownOpen] = useState(false);
     const [geoJsonFiles, setGeoJsonFiles] = useState<{ id: string; name: string }[]>([]);
+    const [drawStyles, setDrawStyles] = useState({
+        fillColor: "#ff0000",
+        fillOpacity: 0.5,
+        outlineColor: "#000000",
+        outlineWidth: 2,
+    })
 
     useEffect(() => {
         const savedFiles = JSON.parse(localStorage.getItem("geojsonfiles") || "[]");
@@ -132,6 +140,7 @@ function SidebarLayout(props: SidebarLayoutProps) {
         setOpen(false);
         setStylesDropdownOpen(false);
         setLayersDropdownOpen(false);
+        setDrawStylesDropdownOpen(false)
     };
 
     const toggleStylesDropdown = () => {
@@ -142,6 +151,20 @@ function SidebarLayout(props: SidebarLayoutProps) {
     const toggleLayersDropdown = () => {
         setLayersDropdownOpen((prev) => !prev);
         setOpen(true);
+    }
+
+    const toggleDrawStylesDropdown = () => {
+        setDrawStylesDropdownOpen(!drawStylesDropdownOpen);
+        setOpen(true);
+    }
+
+    const handleInputChange = (e: any) => {
+        const { name, value } = e.target;
+        setDrawStyles({ ...drawStyles, [name]: value })
+    }
+
+    const applyStyles = () => {
+        props.onDrawStyleChange(drawStyles)
     }
 
     return (
@@ -276,6 +299,54 @@ function SidebarLayout(props: SidebarLayoutProps) {
                             </List>
                         </Collapse>
                     </ListItem>
+                    <ListItem disablePadding sx={{ display: 'block' }}>
+                        <ListItemButton onClick={toggleDrawStylesDropdown}>
+                            <ListItemIcon>
+                                <Brush />
+                            </ListItemIcon>
+                            <ListItemText primary={"Styles"} />
+                            {drawStylesDropdownOpen ? <ExpandLess /> : <ExpandMore />}
+                        </ListItemButton>
+                    </ListItem>
+                    <Collapse in={drawStylesDropdownOpen} timeout="auto" unmountOnExit >
+                        <Box sx={{ display: "flex", flexDirection: "column", padding: 2 }}>
+                            <TextField
+                                label="Fill Color"
+                                name="fillColor"
+                                value={drawStyles.fillColor}
+                                onChange={handleInputChange}
+                                fullWidth
+                                margin="normal"
+                            />
+                            <TextField
+                                label="Fill Opacity"
+                                name="fillOpacity"
+                                value={drawStyles.fillOpacity}
+                                onChange={handleInputChange}
+                                fullWidth
+                                margin="normal"
+                            />
+                            <TextField
+                                label="Outline Color"
+                                name="outlineColor"
+                                value={drawStyles.outlineColor}
+                                onChange={handleInputChange}
+                                fullWidth
+                                margin="normal"
+                            />
+                            <TextField
+                                label="Outline Width"
+                                name="outlineWidth"
+                                value={drawStyles.outlineWidth}
+                                onChange={handleInputChange}
+                                fullWidth
+                                margin="normal"
+                            />
+                            <Button variant="contained" onClick={applyStyles} fullWidth>
+                                Apply Styles
+                            </Button>
+                        </Box>
+                    </Collapse>
                 </List>
                 <Divider />
             </Drawer>
